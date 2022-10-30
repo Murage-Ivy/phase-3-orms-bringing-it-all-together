@@ -108,10 +108,16 @@ class Dog
   end
 
   def self.find_or_create_by(name:, breed:)
-    if self.find_dog_by_name_and_breed(name: name, breed: breed)
-      self
-    else
+    sql = <<-SQL
+    SELECT * FROM dogs 
+    WHERE name = ? AND breed = ?
+    LIMIT ?
+    SQL
+    dog = DB[:conn].execute(sql, name, breed, 1)
+    if dog.empty?
       self.create(name: name, breed: breed)
+    else
+      dog.map do |row| self.new_from_db(row) end.first
     end
   end
 
@@ -122,13 +128,5 @@ class Dog
     WHERE id = ?
     SQL
     DB[:conn].execute(sql, self.name, self.breed, self.id)
-  end
-
-  private
-
-  def self.find_dog_by_name_and_breed(name:, breed:)
-    self.all.find do |dog|
-      dog.name == name && dog.breed == breed
-    end
   end
 end
