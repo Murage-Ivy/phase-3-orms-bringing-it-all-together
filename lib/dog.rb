@@ -45,14 +45,15 @@ class Dog
 
       # Inserts the attributes of the dog that is the name and breed into the table dogs as a row
       DB[:conn].execute(sql, self.name, self.breed)
+
+      # Gets the id given to the row that was inserted into the table
+      self.id = DB[:conn].execute("SELECT last_insert_rowid() FROM dogs").first[0]
+
+      # The object is returned
+
     else
       self.update
     end
-
-    # Gets the id given to the row that was inserted into the table
-    self.id = DB[:conn].execute("SELECT last_insert_rowid() FROM dogs").first[0]
-
-    # The object is returned
     self
   end
 
@@ -116,9 +117,11 @@ class Dog
 
   def update
     sql = <<-SQL
-    UPDATE dogs SET name = ? WHERE id = ?
+    UPDATE dogs 
+    SET name = ?, breed = ? 
+    WHERE id = ?
     SQL
-    DB[:conn].execute(sql, self.name, self.id)
+    DB[:conn].execute(sql, self.name, self.breed, self.id)
   end
 
   private
